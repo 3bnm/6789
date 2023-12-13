@@ -1,0 +1,147 @@
+<html>
+  <body>
+<pre>
+6.
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
+
+data=pd.read_csv('6.csv')
+print(data)
+
+x=data.iloc[:,:-1]
+y=data.iloc[:,-1]
+print(x,"\n\n",y)
+
+x_encoder=x.apply(LabelEncoder().fit_transform)
+y_encoder=LabelEncoder().fit_transform(y)
+
+x_train,x_test,y_train,y_test=train_test_split(x_encoder,y_encoder,test_size=0.20)
+
+classifier=GaussianNB()
+classifier.fit(x_train,y_train)
+
+accuracy=accuracy_score(classifier.predict(x_test),y_test)
+print(x_train)
+print(y_train,"\n")
+print(accuracy)
+
+7.
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import sklearn.metrics as metrics
+from sklearn.cluster import KMeans
+from sklearn.mixture import GaussianMixture
+
+names=['Sepal_Length','Sepal_Width','Petal_Length','Petal_Width','Class']
+data=pd.read_csv('8.csv',names=names)
+
+x=data.iloc[:,:-1]
+label={'Iris-setosa':0,'Iris-versicolor':1,'Iris-virginica':2}
+
+y=[label[c] for c in data.iloc[:,-1]]
+
+plt.figure(figsize=(16,6))
+
+colormap=np.array(['red','lime','black'])
+
+plt.subplot(1,3,1)
+plt.title('Real')
+plt.xlabel('Petal Length')
+plt.ylabel('Petal Width')
+plt.scatter(x.Petal_Length,x.Petal_Width,c=colormap[y])
+
+model=KMeans(n_clusters=3,random_state=0).fit(x)
+plt.subplot(1,3,2)
+plt.title('KMEAN')
+plt.xlabel('Petal Length')
+plt.ylabel('Petal Width')
+plt.scatter(x.Petal_Length,x.Petal_Width,c=colormap[model.labels_])
+print("KMean clustering value: ",metrics.accuracy_score(y,model.labels_))
+
+gmm=GaussianMixture(n_components=3,random_state=0).fit(x)
+y_pred=gmm.predict(x)
+plt.subplot(1,3,3)
+plt.title('GMM')
+plt.xlabel('Petal Length')
+plt.ylabel('Petal Width')
+plt.scatter(x.Petal_Length,x.Petal_Width,c=colormap[y_pred])
+print("GMM clustering value: ",metrics.accuracy_score(y,y_pred))
+print("GMM is more efficient than Kmean algorithm by oberving the accuracy score")
+
+8.
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import datasets
+
+iris=datasets.load_iris()
+
+print('Iris dataset loaded...')
+x_train,x_test,y_train,y_test=train_test_split(iris.data,iris.target,test_size=0.1)
+
+print('Training data and label',x_train.shape,y_train.shape)
+print('Training data and label',x_test.shape,y_test.shape)
+
+for i in range(len(iris.target_names)):
+    print("Lable ",i,'-',str(iris.target_names[i]))
+print("Result of classifier using KNN with k=1")
+classifier=KNeighborsClassifier(n_neighbors=2)
+classifier.fit(x_test,y_test)
+y_pred=classifier.predict(x_test)
+
+for r in range(0,len(x_test)):
+    print('Sample:',str(x_test[r]),'Actual:',str(y_test[r]),'Predicted:',str(y_pred[r]))
+    print("Classifier accuracy:",classifier.score(x_test,y_test))
+
+9.
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+def kernel(point, xmat, k):
+    m,n = np.shape(xmat)
+    weights = np.mat(np.eye((m)))
+    for j in range(m):
+        diff = point - X[j]
+        weights[j,j] = np.exp(diff*diff.T/(-2.0*k**2))
+    return weights
+
+def localWeight(point, xmat, ymat, k):
+    wei = kernel(point,xmat,k)
+    W = (X.T*(wei*X)).I*(X.T*(wei*ymat.T))
+    return W
+
+def localWeightRegression(xmat, ymat, k):
+    m,n = np.shape(xmat)
+    ypred = np.zeros(m)
+    for i in range(m):
+        ypred[i] = xmat[i]*localWeight(xmat[i],xmat,ymat,k)
+    return ypred
+
+# load data points
+data = pd.read_csv('9.csv')
+bill = np.array(data.total_bill)
+tip = np.array(data.tip)
+#convering to matrix form
+mbill = np.mat(bill)
+mtip = np.mat(tip)
+m= np.shape(mbill)[1]
+one = np.mat(np.ones(m)) 
+X = np.hstack((one.T,mbill.T))
+#set k here
+ypred = localWeightRegression(X,mtip,0.5)
+SortIndex = X[:,1].argsort(0)
+xsort = X[SortIndex][:,0]
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+ax.scatter(bill,tip, color='green')
+ax.plot(xsort[:,1],ypred[SortIndex], color = 'red', linewidth=5)
+plt.xlabel('Total bill')
+plt.ylabel('Tip')
+plt.show();
+</pre>
+</body>
+</html>
